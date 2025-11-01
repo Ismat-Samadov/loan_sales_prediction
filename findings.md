@@ -7,12 +7,44 @@
 
 ---
 
+## ⚠️ LATEST ANALYSIS UPDATE (2025)
+
+### Critical Findings from Comprehensive Analysis
+
+**Overall Health Score: 35/100** 🔴 **CRITICAL - IMMEDIATE ACTION REQUIRED**
+
+The latest comprehensive analysis reveals significant challenges requiring urgent management attention:
+
+#### Key Issues Identified:
+1. **🔴 Overall Health Index: 35/100** - Bank is in "Below Standard" zone
+2. **⚠️ NIM Below Target:** 2.77% (Target: >3%) - Profitability pressure
+3. **⚠️ NPL Risk:** While trending down, NPL management remains PRIORITY #1
+4. **⚠️ Forecast Concerns:** Current data suggests cautious outlook
+
+#### Positive Indicators:
+- ✅ **ROE:** 13.22% (Above 12% benchmark) - Good
+- ✅ **ROA:** 2.32% (Above 1.5% benchmark) - Good
+- ✅ **NPL Trend:** ↘️ Decreasing (positive direction)
+- ✅ **Data Quality:** 84.6% complete and reliable
+
+#### Strategic Recommendations Updated:
+Based on Health Index of 35/100, the bank must:
+1. **IMMEDIATE:** Focus on risk management and NPL reduction (Target: 15% reduction)
+2. **HIGH PRIORITY:** Improve Net Interest Margin to >3%
+3. **ONGOING:** Monitor macroeconomic indicators (GDP +0.777, Oil +0.764 correlation)
+4. **CRITICAL:** Align credit strategy with macro conditions - avoid aggressive expansion until health improves
+
+---
+
 ## 🎯 EXECUTIVE SUMMARY
 
-### Current Status
+### Current Status (Updated 2025)
 - **Average Quarterly Credit Sales:** 80,612 million AZN
 - **Credit Sales Volatility:** 40.0% (High Risk)
-- **Overall Health Index:** Requires Assessment Based on Latest Data
+- **Overall Health Index:** 35/100 - 🔴 **BELOW STANDARD** (Requires Immediate Action)
+- **Bank Performance Status:** Needs serious improvement, focus on risk management
+- **Data Quality:** 84.6% (Good)
+- **Analysis Period:** 26 Quarters (2020-2025)
 
 ---
 
@@ -70,11 +102,12 @@
 
 ## 🔴 CRITICAL RISK FACTOR: NPL (Non-Performing Loans)
 
-### NPL Statistics
+### NPL Statistics (Latest Analysis)
 - **Correlation with Credit Sales:** -0.604 (STRONG NEGATIVE) ⚠️
 - **Average NPL:** 23.53 million AZN
 - **NPL Range:** 13.57 - 42.22 million AZN
 - **NPL Volatility:** 41.7% (High Risk)
+- **Current Trend:** ↘️ Decreasing (Positive sign)
 
 ### **Key Finding:**
 ```
@@ -98,18 +131,19 @@ credit sales decrease proportionally.
 - **Average:** 13.22%
 - **Correlation with Credit Sales:** +0.411 (MODERATE POSITIVE)
 - **Benchmark:** >12% is Good
-- **Current Assessment:** ✅ Above benchmark
+- **Current Assessment:** ✅ Above benchmark (Good)
 
 ### ROA (Return on Assets)
 - **Average:** 2.32%
 - **Correlation with Credit Sales:** +0.354 (MODERATE POSITIVE)
 - **Benchmark:** >1.5% is Good
-- **Current Assessment:** ✅ Above benchmark
+- **Current Assessment:** ✅ Above benchmark (Good)
 
 ### NIM (Net Interest Margin)
-- **Average:** Available in data
+- **Average:** 2.77%
 - **Correlation with Credit Sales:** +0.321 (MODERATE POSITIVE)
 - **Benchmark:** >3% is Good
+- **Current Assessment:** ⚠️ Below benchmark (Needs improvement)
 
 **Decision Insight:**
 > Strong bank profitability (ROE, ROA) creates capacity for more lending. Monitor these monthly.
@@ -324,19 +358,38 @@ Where:
 
 ---
 
-**Last Updated:** 2025
-**Next Review:** Quarterly or when GDP/Oil changes >10%
+**Last Updated:** November 1, 2025
+**Analysis Version:** 2.0 (Comprehensive update with 7 sections)
+**Overall Health Index:** 35/100 🔴 (Critical - Requires immediate improvement)
+**Next Review:** Quarterly or when GDP/Oil changes >10%, or when Health Index changes significantly
 **Contact:** Credit Risk Management & Strategy Team
+
+---
+
+## 📊 NEW ANALYSIS SECTION ADDED
+
+### Section 3.3.3: GDP & Oil Combined Impact Analysis
+A new comprehensive analysis section has been added to the notebook analyzing the synergistic effect of GDP and Oil prices together:
+
+**Key Findings from Section 3.3.3:**
+- When **both GDP AND Oil are HIGH**: Credit sales increase by **+73.7%** vs baseline
+- When **both are LOW**: Credit sales at baseline (lower performance)
+- **Mixed scenarios**: Moderate performance (+30.9%)
+
+**Strategic Insight:**
+> The combined impact of GDP and Oil price is multiplicative, not additive. Wait for favorable macro conditions (both high) to maximize credit sales push.
 
 ---
 
 ## 🔗 RELATED DOCUMENTS
 
-- Full Analysis: `loan_analysis.ipynb`
+- Full Analysis: `loan_analysis.ipynb` (Now with 7 complete sections)
 - Raw Data: `data/raw_data.xlsx`
 - Correlation Heatmap: See Section II in notebook
 - NPL Deep Dive: See Section IV.1 in notebook
+- **NEW:** GDP & Oil Combined Analysis: See Section 3.3.3 in notebook
 - Strategic Recommendations: See Section VI in notebook
+- Seasonal Patterns: See Section VII in notebook
 
 ---
 
