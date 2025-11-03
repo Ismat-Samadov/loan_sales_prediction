@@ -93,6 +93,6 @@
       ]
     }
   ],
-  "best_model": "SARIMA",
+  "best_model": "sarima",
   "training_date": "2025-11-03 10:40:18"
 }

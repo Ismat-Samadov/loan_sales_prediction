@@ -95,6 +95,7 @@ const AdvancedModels = () => {
   }
 
   const modelDetails = modelsInfo.models?.find(m => m.id === selectedModel);
+  const bestModelDetails = modelsInfo.models?.find(m => m.id === modelsInfo.best_model);
 
   return (
     <div className="space-y-6">
@@ -112,7 +113,7 @@ const AdvancedModels = () => {
             ✅ {modelsInfo.models?.length} Model Hazırdır
           </span>
           <span className="text-purple-600">
-            🏆 Ən yaxşı model: {modelsInfo.best_model}
+            🏆 Ən yaxşı model: {bestModelDetails?.name || modelsInfo.best_model}
           </span>
           <span className="text-gray-600">
             📅 Training tarixi: {modelsInfo.training_date}
@@ -357,10 +358,10 @@ const AdvancedModels = () => {
               {modelsInfo.models?.map((model, idx) => (
                 <tr
                   key={idx}
-                  className={`hover:bg-gray-50 ${model.name === modelsInfo.best_model ? 'bg-green-50' : ''}`}
+                  className={`hover:bg-gray-50 ${model.id === modelsInfo.best_model ? 'bg-green-50' : ''}`}
                 >
                   <td className="px-6 py-4 whitespace-nowrap font-medium">
-                    {model.name === modelsInfo.best_model && <span className="mr-2">🏆</span>}
+                    {model.id === modelsInfo.best_model && <span className="mr-2">🏆</span>}
                     {model.name}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{model.type}</td>
