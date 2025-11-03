@@ -13,7 +13,26 @@ class DataLoader:
 
     def __init__(self):
         # Məlumat faylının yolu
-        self.data_path = Path(__file__).parent.parent.parent.parent / "notebooks" / "data" / "ml_ready_data.csv"
+        # Try multiple paths for different deployment scenarios
+        possible_paths = [
+            # Docker container path (data copied to /app/notebooks/data/)
+            Path("/app/notebooks/data/ml_ready_data.csv"),
+            # Development path (from backend directory)
+            Path(__file__).parent.parent.parent.parent / "notebooks" / "data" / "ml_ready_data.csv",
+            # Alternative Docker path
+            Path(__file__).parent.parent / "notebooks" / "data" / "ml_ready_data.csv",
+        ]
+
+        self.data_path = None
+        for path in possible_paths:
+            if path.exists():
+                self.data_path = path
+                break
+
+        if self.data_path is None:
+            # Set to first path for better error message
+            self.data_path = possible_paths[0]
+
         self._df = None
         # Don't load data at init - lazy load when needed
 
@@ -22,7 +41,22 @@ class DataLoader:
         if self._df is not None:
             return  # Already loaded
 
+        print(f"🔍 Attempting to load data from: {self.data_path}")
+        print(f"🔍 File exists: {self.data_path.exists()}")
+
         if not self.data_path.exists():
+            # List directory contents for debugging
+            import os
+            print(f"❌ Data file not found: {self.data_path}")
+            parent_dir = self.data_path.parent
+            if parent_dir.exists():
+                print(f"📂 Parent directory contents: {list(parent_dir.iterdir())}")
+            else:
+                print(f"📂 Parent directory does not exist: {parent_dir}")
+                # Try to find where we are
+                print(f"📂 Current working directory: {os.getcwd()}")
+                print(f"📂 Files in /app: {list(Path('/app').iterdir()) if Path('/app').exists() else 'N/A'}")
+
             raise FileNotFoundError(
                 f"Data file not found: {self.data_path}\n"
                 f"Please ensure ml_ready_data.csv is in the notebooks/data/ directory"
@@ -30,7 +64,7 @@ class DataLoader:
 
         try:
             self._df = pd.read_csv(self.data_path)
-            print(f"✅ Məlumatlar uğurla yükləndi: {len(self._df)} sətir")
+            print(f"✅ Məlumatlar uğurla yükləndi: {len(self._df)} sətir from {self.data_path}")
         except Exception as e:
             print(f"❌ Məlumat yükləmə xətası: {str(e)}")
             raise
