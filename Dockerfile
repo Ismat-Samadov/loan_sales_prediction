@@ -55,8 +55,9 @@ COPY backend/ ./
 # Copy built frontend from frontend-builder
 COPY --from=frontend-builder /frontend/dist ./frontend/dist
 
-# Copy data file
+# Copy data file and trained models
 COPY notebooks/data/ml_ready_data.csv ./notebooks/data/
+COPY notebooks/predictions/models/ ./notebooks/predictions/models/
 
 # Expose port
 EXPOSE 8000
