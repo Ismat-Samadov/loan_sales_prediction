@@ -15,10 +15,19 @@ class DataLoader:
         # Məlumat faylının yolu
         self.data_path = Path(__file__).parent.parent.parent.parent / "notebooks" / "data" / "ml_ready_data.csv"
         self._df = None
-        self._load_data()
+        # Don't load data at init - lazy load when needed
 
     def _load_data(self):
         """Məlumatları yüklə"""
+        if self._df is not None:
+            return  # Already loaded
+
+        if not self.data_path.exists():
+            raise FileNotFoundError(
+                f"Data file not found: {self.data_path}\n"
+                f"Please ensure ml_ready_data.csv is in the notebooks/data/ directory"
+            )
+
         try:
             self._df = pd.read_csv(self.data_path)
             print(f"✅ Məlumatlar uğurla yükləndi: {len(self._df)} sətir")

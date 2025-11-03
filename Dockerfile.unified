@@ -55,8 +55,8 @@ COPY backend/ ./
 # Copy built frontend from frontend-builder
 COPY --from=frontend-builder /frontend/dist ./frontend/dist
 
-# Copy data directory structure
-RUN mkdir -p /app/notebooks/data
+# Copy data file
+COPY notebooks/data/ml_ready_data.csv ./notebooks/data/
 
 # Expose port
 EXPOSE 8000
