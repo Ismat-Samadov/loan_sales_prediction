@@ -49,7 +49,13 @@ async def health_check():
     }
 
 # Serve static frontend files
-static_dir = Path(__file__).parent.parent.parent / "frontend" / "dist"
+# In Docker: /app/frontend/dist
+# In dev: /path/to/project/frontend/dist
+static_dir = Path(__file__).parent.parent / "frontend" / "dist"
+if not static_dir.exists():
+    # Try alternative path for development
+    static_dir = Path(__file__).parent.parent.parent / "frontend" / "dist"
+
 if static_dir.exists():
     app.mount("/assets", StaticFiles(directory=str(static_dir / "assets")), name="assets")
 
