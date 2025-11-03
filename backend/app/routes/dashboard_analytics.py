@@ -25,27 +25,32 @@ async def get_overview():
         df = data_loader.df
         target = 'Nağd_pul_kredit_satışı'
 
+        # Filter out rows with empty target values
+        df_valid = df[df[target].notna()].copy()
+
         # KPIs
-        current_val = float(df[target].iloc[-1])
-        prev_val = float(df[target].iloc[-2]) if len(df) > 1 else current_val
-        change = ((current_val - prev_val) / prev_val * 100) if prev_val != 0 else 0
+        current_val = clean_value(df_valid[target].iloc[-1])
+        prev_val = clean_value(df_valid[target].iloc[-2]) if len(df_valid) > 1 else current_val
+        change = clean_value(((current_val - prev_val) / prev_val * 100) if prev_val != 0 else 0)
+
+        mean_val = clean_value(df_valid[target].mean())
 
         kpis = [
             {
                 "metric": "Loan Sales",
-                "value": current_val,
+                "value": round(current_val, 2),
                 "change": round(change, 2),
                 "trend": "up" if change > 0 else "down" if change < 0 else "neutral"
             },
             {
                 "metric": "Average Sales",
-                "value": round(float(df[target].mean()), 2),
-                "change": round(((current_val - df[target].mean()) / df[target].mean() * 100), 2),
-                "trend": "up" if current_val > df[target].mean() else "down"
+                "value": round(mean_val, 2),
+                "change": round(clean_value((current_val - mean_val) / mean_val * 100 if mean_val != 0 else 0), 2),
+                "trend": "up" if current_val > mean_val else "down"
             },
             {
                 "metric": "Total Records",
-                "value": len(df),
+                "value": len(df_valid),
                 "change": 0,
                 "trend": "neutral"
             }
@@ -53,13 +58,13 @@ async def get_overview():
 
         # Trends - last 12 quarters
         trends = []
-        for _, row in df.tail(12).iterrows():
+        for _, row in df_valid.tail(12).iterrows():
             quarter = f"{int(row['Year'])}-Q{int(row['Quarter'])}"
             trends.append({
                 "quarter": quarter,
                 "value": clean_value(row[target]),
                 "gdp": clean_value(row.get('GDP', 0)),
-                "inflation": clean_value(row.get('İnflyasiya', 0))
+                "inflation": clean_value(row.get('Uçot_faiz_dərəcəsi', 0))
             })
 
         return {"kpis": kpis, "trends": trends}
