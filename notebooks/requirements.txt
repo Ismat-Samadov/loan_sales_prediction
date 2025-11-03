@@ -6,3 +6,4 @@ scikit-learn>=1.2.0
 openpyxl>=3.0.0
 jupyter>=1.0.0
 statsmodels
+xgboost

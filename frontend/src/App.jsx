@@ -10,7 +10,8 @@ import {
   ArrowDownRight,
   Minus,
   Target,
-  TrendingDown
+  TrendingDown,
+  Brain
 } from 'lucide-react';
 import {
   LineChart,
@@ -44,6 +45,7 @@ import {
   getDetailedStats,
   getCorrelation
 } from './services/api';
+import AdvancedModels from './components/AdvancedModels';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
@@ -198,7 +200,8 @@ function App() {
               { id: 'dashboard', label: '📊 Dashboard', icon: BarChart3 },
               { id: 'charts', label: '📈 Qrafiklər', icon: TrendingUp },
               { id: 'insights', label: '💡 Təhlillər', icon: PieChart },
-              { id: 'quarterly', label: '📅 Rüblər', icon: Activity }
+              { id: 'quarterly', label: '📅 Rüblər', icon: Activity },
+              { id: 'advanced', label: '🤖 ML Models', icon: Brain }
             ].map(tab => (
               <button
                 key={tab.id}
@@ -677,6 +680,8 @@ function App() {
             </div>
           </div>
         )}
+
+        {activeTab === 'advanced' && <AdvancedModels />}
       </main>
     </div>
   );

@@ -31,6 +31,11 @@ export const getSeasonalForecast = (periods = 4) => api.get(`/api/predictions/se
 export const getConfidenceLevels = () => api.get('/api/predictions/confidence-levels');
 export const getModelComparison = () => api.get('/api/predictions/model-comparison');
 
+// Advanced Models
+export const getAdvancedModelsInfo = () => api.get('/api/predictions/advanced-models-info');
+export const getAdvancedForecast = (modelName, periods = 4) =>
+  api.post(`/api/predictions/advanced-forecast?model_name=${modelName}&n_periods=${periods}`);
+
 // Insights
 export const getExecutiveSummary = () => api.get('/api/insights/executive-summary');
 export const getPerformanceMetrics = () => api.get('/api/insights/performance-metrics');

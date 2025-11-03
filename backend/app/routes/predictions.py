@@ -4,14 +4,19 @@ Predictions and Forecasting Routes
 """
 
 from fastapi import APIRouter, HTTPException, Query
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any
 import pandas as pd
 import numpy as np
-from datetime import datetime
+from pathlib import Path
+import pickle
+import json
 
 from app.utils.data_loader import data_loader
 
 router = APIRouter()
+
+# Model paths
+MODELS_DIR = Path(__file__).parent.parent.parent.parent / "notebooks" / "predictions" / "models"
 
 
 @router.get("/simple-forecast", response_model=Dict[str, Any])
@@ -405,6 +410,207 @@ async def get_confidence_levels():
             "təkmilləşdirmə": "Əgər MAPE > 20% isə, əlavə dəyişənlər əlavə edin və ya daha mürəkkəb model istifadə edin"
         }
     }
+
+
+@router.get("/advanced-models-info", response_model=Dict[str, Any])
+async def get_advanced_models_info():
+    """
+    🤖 Advanced ML Models Information
+
+    Returns information about all trained advanced models
+    """
+    try:
+        model_info_path = MODELS_DIR / "model_info.json"
+
+        if not model_info_path.exists():
+            return {
+                "status": "not_trained",
+                "message": "Advanced models have not been trained yet. Please run the training notebook first.",
+                "notebook_path": "notebooks/predictions/advanced_forecasting_models.ipynb"
+            }
+
+        with open(model_info_path, 'r', encoding='utf-8') as f:
+            model_info = json.load(f)
+
+        return {
+            "status": "ready",
+            "models": model_info['models'],
+            "best_model": model_info['best_model'],
+            "training_date": model_info['training_date']
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error loading model info: {str(e)}")
+
+
+@router.post("/advanced-forecast", response_model=Dict[str, Any])
+async def get_advanced_forecast(
+    model_name: str = Query(..., description="Model: random_forest, xgboost, arima, sarima, sarimax"),
+    n_periods: int = Query(default=4, ge=1, le=8, description="Number of periods to forecast")
+):
+    """
+    🚀 Advanced Model Forecasting
+
+    Make predictions using trained ML/Time Series models
+    """
+    try:
+        # Check if models exist
+        if not MODELS_DIR.exists():
+            raise HTTPException(
+                status_code=404,
+                detail="Models directory not found. Please train models first."
+            )
+
+        # Load model info
+        model_info_path = MODELS_DIR / "model_info.json"
+        if not model_info_path.exists():
+            raise HTTPException(
+                status_code=404,
+                detail="Models not trained yet. Please run the training notebook."
+            )
+
+        with open(model_info_path, 'r', encoding='utf-8') as f:
+            model_info = json.load(f)
+
+        # Find model details
+        model_details = next((m for m in model_info['models'] if m['id'] == model_name), None)
+        if not model_details:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid model name: {model_name}. Available: random_forest, xgboost, arima, sarima, sarimax"
+            )
+
+        df = data_loader.df
+
+        # Prepare forecast based on model type
+        if model_name in ['random_forest', 'xgboost']:
+            # Load ML model and scaler
+            model_path = MODELS_DIR / f"{model_name}.pkl"
+            scaler_path = MODELS_DIR / "scaler.pkl"
+
+            with open(model_path, 'rb') as f:
+                model = pickle.load(f)
+            with open(scaler_path, 'rb') as f:
+                scaler = pickle.load(f)
+
+            # Load feature importance
+            fi_prefix = "rf" if model_name == "random_forest" else "xgb"
+            fi_path = MODELS_DIR / f"{fi_prefix}_feature_importance.csv"
+            feature_importance = pd.read_csv(fi_path).head(10).to_dict('records')
+
+            # Simple prediction (using last known lags)
+            # This is simplified - in production you'd do recursive forecasting
+            last_values = df['Nağd_pul_kredit_satışı'].iloc[-4:].values
+            last_year = df['Year'].iloc[-1]
+            last_quarter = df['Quarter'].iloc[-1]
+
+            forecasts = []
+            for i in range(1, n_periods + 1):
+                q = ((last_quarter + i - 1) % 4) + 1
+                y = last_year + (last_quarter + i - 1) // 4
+
+                # Create feature vector (simplified)
+                features = {
+                    'Year': y,
+                    'Quarter': q,
+                    'Time_Index': len(df) + i - 1,
+                    'Quarter_Sin': np.sin(2 * np.pi * q / 4),
+                    'Quarter_Cos': np.cos(2 * np.pi * q / 4),
+                    'Lag_1': last_values[-1],
+                    'Lag_2': last_values[-2],
+                    'Lag_3': last_values[-3],
+                    'Lag_4': last_values[-4] if len(last_values) > 3 else last_values[0],
+                    'Rolling_Mean_2': np.mean(last_values[-2:]),
+                    'Rolling_Mean_3': np.mean(last_values[-3:]),
+                    'Rolling_Mean_4': np.mean(last_values[-4:]),
+                    'Rolling_Std_2': np.std(last_values[-2:]),
+                    'Rolling_Std_3': np.std(last_values[-3:]),
+                    'Rolling_Std_4': np.std(last_values[-4:]),
+                    'Diff_1': 0,
+                    'Diff_4': 0
+                }
+
+                X = pd.DataFrame([features])
+                X_scaled = scaler.transform(X)
+                pred = model.predict(X_scaled)[0]
+
+                # Simple confidence interval
+                std = np.std(last_values)
+
+                forecasts.append({
+                    "dövr": f"{y}-Q{q}",
+                    "il": int(y),
+                    "rüb": int(q),
+                    "proqnoz": round(float(pred), 2),
+                    "aşağı_sərhəd_95": round(float(pred - 1.96 * std), 2),
+                    "yuxarı_sərhəd_95": round(float(pred + 1.96 * std), 2)
+                })
+
+            return {
+                "model": model_details,
+                "proqnozlar": forecasts,
+                "feature_importance": feature_importance,
+                "model_type": "Machine Learning"
+            }
+
+        elif model_name in ['arima', 'sarima', 'sarimax']:
+            # Load time series model
+            from statsmodels.tsa.statespace.sarimax import SARIMAXResults
+            from statsmodels.tsa.arima.model import ARIMAResults
+
+            model_path = MODELS_DIR / f"{model_name}.pkl"
+
+            if model_name == 'arima':
+                model = ARIMAResults.load(model_path)
+            else:
+                model = SARIMAXResults.load(model_path)
+
+            # Make forecast
+            if model_name == 'sarimax':
+                # Need exogenous variables for SARIMAX
+                last_year = df['Year'].iloc[-1]
+                last_quarter = df['Quarter'].iloc[-1]
+
+                exog_future = []
+                for i in range(1, n_periods + 1):
+                    q = ((last_quarter + i - 1) % 4) + 1
+                    y = last_year + (last_quarter + i - 1) // 4
+                    exog_future.append({'Year': y, 'Quarter': q})
+
+                exog_df = pd.DataFrame(exog_future)
+                forecast_result = model.forecast(steps=n_periods, exog=exog_df)
+            else:
+                forecast_result = model.forecast(steps=n_periods)
+
+            # Get confidence intervals
+            forecast_ci = model.get_forecast(steps=n_periods).conf_int()
+
+            last_year = df['Year'].iloc[-1]
+            last_quarter = df['Quarter'].iloc[-1]
+
+            forecasts = []
+            for i in range(n_periods):
+                q = ((last_quarter + i) % 4) + 1
+                y = last_year + (last_quarter + i) // 4
+
+                forecasts.append({
+                    "dövr": f"{y}-Q{q}",
+                    "il": int(y),
+                    "rüb": int(q),
+                    "proqnoz": round(float(forecast_result.iloc[i]), 2),
+                    "aşağı_sərhəd_95": round(float(forecast_ci.iloc[i, 0]), 2),
+                    "yuxarı_sərhəd_95": round(float(forecast_ci.iloc[i, 1]), 2)
+                })
+
+            return {
+                "model": model_details,
+                "proqnozlar": forecasts,
+                "model_type": "Time Series"
+            }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Forecast error: {str(e)}")
 
 
 @router.get("/model-comparison", response_model=Dict[str, Any])
