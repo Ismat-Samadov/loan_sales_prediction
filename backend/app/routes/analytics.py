@@ -246,8 +246,8 @@ async def get_detailed_statistics():
                     "izah": "Kiçik örnəklər üçün ən etibarlı normallıq testi"
                 },
                 "tövsiyə": {
-                    "parametrik_testlər": shapiro_p > 0.05,
-                    "transformasiya_lazımdır": shapiro_p <= 0.05,
+                    "parametrik_testlər": bool(shapiro_p > 0.05),
+                    "transformasiya_lazımdır": bool(shapiro_p <= 0.05),
                     "təklif": "Parametrik testlər istifadə edilə bilər" if shapiro_p > 0.05
                             else "Log və ya Box-Cox transformasiyası tövsiyə olunur"
                 }
@@ -407,7 +407,7 @@ async def get_trend_analysis():
             },
             "illik_artım_templəri": yearly_growth,
             "proqnoz_potensialı": {
-                "trend_mövcudluğu": p_value < 0.05,
+                "trend_mövcudluğu": bool(p_value < 0.05),
                 "trend_gücü": "Güclü" if r_value ** 2 > 0.7 else "Orta" if r_value ** 2 > 0.4 else "Zəif",
                 "proqnozlaşdırıla_bilənlik": "Yüksək" if p_value < 0.05 and r_value ** 2 > 0.6 else "Orta" if p_value < 0.05 else "Aşağı",
                 "tövsiyə": "Linear trend modeli istifadə edilə bilər" if r_value ** 2 > 0.6
