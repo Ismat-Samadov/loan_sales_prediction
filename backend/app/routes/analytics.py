@@ -456,10 +456,10 @@ async def get_trend_analysis():
             },
             "illik_artım_templəri": yearly_growth,
             "proqnoz_potensialı": {
-                "trend_mövcudluğu": bool(p_value < 0.05),
-                "trend_gücü": "Güclü" if r_value ** 2 > 0.7 else "Orta" if r_value ** 2 > 0.4 else "Zəif",
-                "proqnozlaşdırıla_bilənlik": "Yüksək" if p_value < 0.05 and r_value ** 2 > 0.6 else "Orta" if p_value < 0.05 else "Aşağı",
-                "tövsiyə": "Linear trend modeli istifadə edilə bilər" if r_value ** 2 > 0.6
+                "trend_mövcudluğu": bool(float(p_value) < 0.05),
+                "trend_gücü": "Güclü" if float(r_value ** 2) > 0.7 else "Orta" if float(r_value ** 2) > 0.4 else "Zəif",
+                "proqnozlaşdırıla_bilənlik": "Yüksək" if float(p_value) < 0.05 and float(r_value ** 2) > 0.6 else "Orta" if float(p_value) < 0.05 else "Aşağı",
+                "tövsiyə": "Linear trend modeli istifadə edilə bilər" if float(r_value ** 2) > 0.6
                          else "Daha mürəkkəb modellər lazımdır"
             },
             "risk_qiymətləndirməsi": {
