@@ -3,7 +3,7 @@ Kredit Satışı Analitika API
 FastAPI Backend with Analytics Routes in Azerbaijani
 """
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -32,13 +32,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
+# Include routers - THESE MUST BE FIRST
 app.include_router(analytics.router, prefix="/api/analytics", tags=["📊 Analitika"])
 app.include_router(statistics.router, prefix="/api/statistics", tags=["📈 Statistika"])
 app.include_router(predictions.router, prefix="/api/predictions", tags=["🔮 Proqnozlar"])
 app.include_router(insights.router, prefix="/api/insights", tags=["💡 Təhlillər"])
 
-# Health check - must be defined before catch-all route
+# Health check
 @app.get("/health")
 async def health_check():
     """Sağlamlıq yoxlaması"""
@@ -48,34 +48,38 @@ async def health_check():
         "xidmət": "işləyir"
     }
 
-# Serve static frontend files
-# In Docker: /app/frontend/dist
-# In dev: /path/to/project/frontend/dist
+# Determine frontend directory path
 static_dir = Path(__file__).parent.parent / "frontend" / "dist"
 if not static_dir.exists():
     # Try alternative path for development
     static_dir = Path(__file__).parent.parent.parent / "frontend" / "dist"
 
-if static_dir.exists():
+# Mount static files and setup SPA routing
+if static_dir.exists() and (static_dir / "index.html").exists():
+    # Mount static assets
     app.mount("/assets", StaticFiles(directory=str(static_dir / "assets")), name="assets")
 
+    # Serve static files (vite.svg, etc)
+    @app.get("/vite.svg")
+    async def serve_vite_svg():
+        return FileResponse(static_dir / "vite.svg")
+
+    # Root route - serve frontend
     @app.get("/")
     async def serve_frontend():
         """Serve frontend application"""
-        index_file = static_dir / "index.html"
-        if index_file.exists():
-            return FileResponse(index_file)
-        return {"message": "Frontend not built yet. Run 'npm run build' in frontend directory."}
+        return FileResponse(static_dir / "index.html")
 
-    @app.get("/{full_path:path}")
-    async def catch_all(full_path: str):
-        """Catch all routes for SPA"""
-        if full_path.startswith(("api/", "docs", "redoc", "openapi.json", "health")):
+    # SPA catch-all - MUST BE LAST
+    # This handles client-side routing
+    @app.api_route("/{path_name:path}", methods=["GET"])
+    async def serve_spa(request: Request, path_name: str):
+        """Serve SPA for all other GET requests"""
+        # Let API routes, docs, etc pass through
+        if path_name.startswith(("api/", "docs", "redoc", "openapi.json", "health", "assets/")):
             raise HTTPException(status_code=404, detail="Not found")
-        index_file = static_dir / "index.html"
-        if index_file.exists():
-            return FileResponse(index_file)
-        raise HTTPException(status_code=404, detail="Frontend not found")
+        # Serve index.html for all other routes (client-side routing)
+        return FileResponse(static_dir / "index.html")
 else:
     @app.get("/")
     async def root():
@@ -102,7 +106,7 @@ if __name__ == "__main__":
     uvicorn.run(
         "app.main:app",
         host="0.0.0.0",
-        port=8000,
+        port="8000",
         reload=True,
         log_level="info"
     )
