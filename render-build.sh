@@ -2,14 +2,14 @@
 # exit on error
 set -o errexit
 
-echo "🔧 Installing Python packages with pre-built wheels..."
+echo "🔧 Installing Python packages with pre-built wheels for Python 3.13..."
 
 # Upgrade pip and setuptools
 python -m pip install --upgrade pip setuptools wheel
 
-# Install numpy and pandas FIRST with pre-built wheels only
-echo "📦 Installing numpy and pandas from pre-built wheels..."
-pip install --only-binary=:all: numpy==1.26.4
+# Install numpy and pandas FIRST with pre-built wheels only (Python 3.13 compatible)
+echo "📦 Installing numpy 2.x and pandas (Python 3.13 compatible)..."
+pip install --only-binary=:all: numpy==2.1.0
 pip install --only-binary=:all: pandas==2.2.3
 
 # Install web framework packages
@@ -23,7 +23,7 @@ pip install --only-binary=:all: \
 
 # Install ML packages (these depend on numpy/pandas)
 echo "🤖 Installing ML packages..."
-pip install --only-binary=:all: scikit-learn==1.5.2
-pip install statsmodels==0.14.4
+pip install --only-binary=:all: scikit-learn==1.6.0
+pip install --only-binary=:all: statsmodels==0.14.4
 
 echo "✅ Build completed successfully!"
