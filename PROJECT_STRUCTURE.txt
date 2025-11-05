@@ -1,0 +1,88 @@
+.
+├── app
+│   ├── static
+│   │   ├── css
+│   │   │   └── style.css
+│   │   └── js
+│   │       └── main.js
+│   ├── templates
+│   │   └── index.html
+│   └── main.py
+├── notebooks
+│   ├── analyse
+│   │   ├── images
+│   │   │   ├── professional_01_sales_trend.png
+│   │   │   ├── professional_02_quarterly_pattern.png
+│   │   │   ├── professional_03_yearly_comparison.png
+│   │   │   ├── professional_04_npl_trend.png
+│   │   │   ├── professional_05_roe_trend.png
+│   │   │   ├── professional_06_correlations.png
+│   │   │   ├── professional_07_oil_sales.png
+│   │   │   ├── professional_08_quarterly_share.png
+│   │   │   ├── professional_09_npl_roe_trend.png
+│   │   │   ├── professional_10_correlation_heatmap.png
+│   │   │   ├── professional_11_qoq_growth.png
+│   │   │   ├── professional_12_portfolio_sales.png
+│   │   │   ├── professional_13_ld_ratio.png
+│   │   │   ├── professional_14_scorecard.png
+│   │   │   ├── professional_15_margin_efficiency.png
+│   │   │   ├── professional_16_deposits_credits.png
+│   │   │   ├── professional_17_wage_credit.png
+│   │   │   ├── professional_18_trade_balance.png
+│   │   │   ├── professional_19_volatility.png
+│   │   │   ├── professional_20_housing_credit.png
+│   │   │   ├── professional_21_yoy_growth.png
+│   │   │   ├── professional_22_gdp_correlation.png
+│   │   │   ├── professional_23_index.png
+│   │   │   ├── professional_24_heatmap_quarters.png
+│   │   │   └── professional_25_efficiency.png
+│   │   ├── PRESENTATION.md
+│   │   └── insights_visualizations.ipynb
+│   ├── data
+│   │   ├── domain_engineered_features.csv
+│   │   ├── loan_sales.xlsx
+│   │   ├── loan_sales_data_dictionary.csv
+│   │   ├── ml_ready_data.csv
+│   │   ├── pca_features.csv
+│   │   └── polynomial_features.csv
+│   ├── prediction
+│   │   ├── charts
+│   │   │   └── pca_analysis.png
+│   │   ├── models
+│   │   │   ├── MODELS_SUMMARY.md
+│   │   │   ├── README.md
+│   │   │   ├── loan_sales_model.pkl
+│   │   │   ├── ml_AdaBoost.pkl
+│   │   │   ├── ml_CatBoost.pkl
+│   │   │   ├── ml_Decision_Tree.pkl
+│   │   │   ├── ml_ElasticNet.pkl
+│   │   │   ├── ml_Gradient_Boosting.pkl
+│   │   │   ├── ml_K-Nearest_Neighbors.pkl
+│   │   │   ├── ml_Lasso_α=10.pkl
+│   │   │   ├── ml_LightGBM.pkl
+│   │   │   ├── ml_Random_Forest.pkl
+│   │   │   ├── ml_Ridge_α=10.pkl
+│   │   │   ├── ml_Ridge_α=100.pkl
+│   │   │   ├── ml_Support_Vector_Regression.pkl
+│   │   │   ├── ml_XGBoost.pkl
+│   │   │   ├── model_metadata.json
+│   │   │   ├── model_registry.json
+│   │   │   ├── scaler.pkl
+│   │   │   ├── ts_ARIMA111.pkl
+│   │   │   ├── ts_ARIMA212.pkl
+│   │   │   ├── ts_Holt-Winters.pkl
+│   │   │   ├── ts_SARIMA1111114.pkl
+│   │   │   └── ts_SARIMAX1111114.pkl
+│   │   └── train_all_models.py
+│   └── data_preparation.py
+├── Dockerfile
+├── PROJECT_STRUCTURE.txt
+├── README.md
+├── README_OLD.md
+├── render-build.sh
+├── render.yaml
+├── requirements.txt
+├── start.py
+└── test_all_models.py
+
+13 directories, 73 files
