@@ -23,13 +23,13 @@ pip install --only-binary=:all: \
 
 # Install ML packages (these depend on numpy/pandas)
 echo "🤖 Installing ML base packages..."
-pip install --only-binary=:all: scikit-learn==1.6.0
+pip install --only-binary=:all: scikit-learn==1.3.2
 pip install --only-binary=:all: statsmodels==0.14.4
 
 # Install boosting algorithms (required for XGBoost, LightGBM, CatBoost models)
 echo "🚀 Installing boosting algorithms..."
-pip install --only-binary=:all: xgboost==2.1.3
-pip install --only-binary=:all: lightgbm==4.5.0
-pip install --only-binary=:all: catboost==1.2.7
+pip install --only-binary=:all: xgboost==2.0.3
+pip install --only-binary=:all: lightgbm==4.6.0
+pip install --only-binary=:all: catboost==1.2.8
 
 echo "✅ Build completed successfully!"
