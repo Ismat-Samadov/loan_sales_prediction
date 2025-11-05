@@ -222,15 +222,29 @@ def prepare_ml_features():
     return features.reshape(1, -1)
 
 
-def prepare_ts_forecast(model, steps: int = 1):
+def prepare_ts_forecast(model, steps: int = 1, model_name: str = ""):
     """Make time series forecast"""
     try:
-        forecast = model.forecast(steps=steps)
+        # SARIMAX models need exogenous variables (time trend)
+        if 'SARIMAX' in model_name:
+            # Load historical data to get the time index
+            df = load_historical_data()
+            last_index = len(df)
+            # Create exogenous variable (time trend) for next step
+            exog_future = np.arange(last_index, last_index + steps).reshape(-1, 1)
+            forecast = model.forecast(steps=steps, exog=exog_future)
+        else:
+            forecast = model.forecast(steps=steps)
+
         if isinstance(forecast, (list, np.ndarray)):
             return float(forecast[-1])
+        # Handle pandas Series
+        if hasattr(forecast, 'iloc'):
+            return float(forecast.iloc[0])
         return float(forecast)
     except Exception as e:
-        # Some models may need different approach
+        # Some models may fail - return None to indicate failure
+        print(f"⚠️  Forecast failed for {model_name}: {str(e)}")
         return None
 
 
@@ -280,7 +294,7 @@ async def predict(request: PredictionRequest):
         elif info['type'] == 'timeseries':
             # Time series models forecast ahead
             # For simplicity, we'll forecast 1 step ahead
-            prediction = prepare_ts_forecast(model, steps=1)
+            prediction = prepare_ts_forecast(model, steps=1, model_name=request.model)
 
             if prediction is None:
                 return JSONResponse({
@@ -337,7 +351,7 @@ async def compare(request: ComparisonRequest):
                 features = prepare_ml_features()
                 prediction = float(model.predict(features)[0])
             elif info['type'] == 'timeseries':
-                prediction = prepare_ts_forecast(model, steps=1)
+                prediction = prepare_ts_forecast(model, steps=1, model_name=model_name)
                 if prediction is None:
                     prediction = 0.0
             else:
