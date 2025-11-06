@@ -212,39 +212,110 @@ def get_historical_sales(year: int, quarter: int, years_back: int = 3):
     return historical
 
 
-def prepare_ml_features():
-    """Load PCA features for ML model prediction"""
+def prepare_ml_features(year: int = None, quarter: int = None):
+    """Load PCA features for ML model prediction
+
+    Args:
+        year: Target year for prediction (optional)
+        quarter: Target quarter for prediction (optional)
+
+    Returns:
+        Feature array for prediction
+
+    Note: Since PCA features exclude temporal information, we use the most recent
+    features as a baseline. For future predictions, we could interpolate or use
+    the last known pattern, but currently ML models don't have temporal awareness.
+    """
     df_pca = pd.read_csv(DATA_DIR / 'pca_features.csv')
 
-    # Get the last known features as template
-    features = df_pca[['PC1', 'PC2', 'PC3', 'PC4', 'PC5', 'PC6']].iloc[-1].values
+    # If year/quarter specified, try to find matching row
+    if year is not None and quarter is not None:
+        # Load original data to find matching time period
+        df_orig = pd.read_csv(DATA_DIR / 'ml_ready_data.csv')
+        matching_rows = df_orig[(df_orig['Year'] == year) & (df_orig['Quarter'] == quarter)]
 
+        if not matching_rows.empty:
+            # Get the index of the matching row
+            idx = matching_rows.index[0]
+            if idx < len(df_pca):
+                # Use features from that specific period
+                features = df_pca[['PC1', 'PC2', 'PC3', 'PC4', 'PC5', 'PC6']].iloc[idx].values
+                return features.reshape(1, -1)
+
+    # Fallback: Use the most recent known features
+    # This is used when predicting future quarters not in historical data
+    features = df_pca[['PC1', 'PC2', 'PC3', 'PC4', 'PC5', 'PC6']].iloc[-1].values
     return features.reshape(1, -1)
 
 
-def prepare_ts_forecast(model, steps: int = 1, model_name: str = ""):
-    """Make time series forecast"""
+def calculate_forecast_steps(target_year: int, target_quarter: int) -> int:
+    """Calculate how many quarters ahead to forecast from the last observation
+
+    Args:
+        target_year: Target year for prediction
+        target_quarter: Target quarter for prediction (1-4)
+
+    Returns:
+        Number of quarters to forecast ahead
+    """
+    df = load_historical_data()
+    if df.empty:
+        return 1  # Default to 1 step if no data
+
+    # Get the last observation date
+    last_year = int(df['Year'].iloc[-1])
+    last_quarter = int(df['Quarter'].iloc[-1])
+
+    # Calculate quarters difference
+    # Each year has 4 quarters
+    quarters_diff = (target_year - last_year) * 4 + (target_quarter - last_quarter)
+
+    # Ensure at least 1 step ahead
+    return max(1, quarters_diff)
+
+
+def prepare_ts_forecast(model, target_year: int = None, target_quarter: int = None, model_name: str = ""):
+    """Make time series forecast for a specific year/quarter
+
+    Args:
+        model: Trained time series model
+        target_year: Target year for prediction
+        target_quarter: Target quarter for prediction (1-4)
+        model_name: Name of the model (for error handling)
+
+    Returns:
+        Forecasted value or None if failed
+    """
     try:
+        # Calculate how many steps ahead to forecast
+        if target_year is not None and target_quarter is not None:
+            steps = calculate_forecast_steps(target_year, target_quarter)
+        else:
+            steps = 1  # Default: forecast 1 step ahead
+
         # SARIMAX models need exogenous variables (time trend)
         if 'SARIMAX' in model_name:
             # Load historical data to get the time index
             df = load_historical_data()
             last_index = len(df)
-            # Create exogenous variable (time trend) for next step
+            # Create exogenous variable (time trend) for future steps
             exog_future = np.arange(last_index, last_index + steps).reshape(-1, 1)
             forecast = model.forecast(steps=steps, exog=exog_future)
         else:
             forecast = model.forecast(steps=steps)
 
+        # Extract the final forecasted value (the target period)
         if isinstance(forecast, (list, np.ndarray)):
-            return float(forecast[-1])
+            return float(forecast[-1])  # Return the last step
         # Handle pandas Series
         if hasattr(forecast, 'iloc'):
+            if len(forecast) > 0:
+                return float(forecast.iloc[-1])  # Return the last step
             return float(forecast.iloc[0])
         return float(forecast)
     except Exception as e:
         # Some models may fail - return None to indicate failure
-        print(f"⚠️  Forecast failed for {model_name}: {str(e)}")
+        print(f"⚠️  Forecast failed for {model_name} (target: {target_year}Q{target_quarter}, steps: {steps if 'steps' in locals() else '?'}): {str(e)}")
         return None
 
 
@@ -298,19 +369,23 @@ async def predict(request: PredictionRequest):
 
         # Make prediction based on model type
         if info['type'] == 'ml':
-            # ML models use PCA features
-            features = prepare_ml_features()
+            # ML models use PCA features (pass year/quarter for matching if available)
+            features = prepare_ml_features(year=request.year, quarter=request.quarter)
             prediction = float(model.predict(features)[0])
 
         elif info['type'] == 'timeseries':
-            # Time series models forecast ahead
-            # For simplicity, we'll forecast 1 step ahead
-            prediction = prepare_ts_forecast(model, steps=1, model_name=request.model)
+            # Time series models forecast ahead to the specific year/quarter
+            prediction = prepare_ts_forecast(
+                model,
+                target_year=request.year,
+                target_quarter=request.quarter,
+                model_name=request.model
+            )
 
             if prediction is None:
                 return JSONResponse({
                     'error': 'Time series prediction failed',
-                    'note': 'This model may require exogenous variables'
+                    'note': 'This model may require exogenous variables or forecast horizon is too long'
                 }, status_code=400)
 
         else:
@@ -357,14 +432,19 @@ async def compare(request: ComparisonRequest):
             # Load model
             model, info = load_model(model_name)
 
-            # Make prediction
+            # Make prediction with year/quarter context
             if info['type'] == 'ml':
-                features = prepare_ml_features()
+                features = prepare_ml_features(year=request.year, quarter=request.quarter)
                 prediction = float(model.predict(features)[0])
             elif info['type'] == 'timeseries':
-                prediction = prepare_ts_forecast(model, steps=1, model_name=model_name)
+                prediction = prepare_ts_forecast(
+                    model,
+                    target_year=request.year,
+                    target_quarter=request.quarter,
+                    model_name=model_name
+                )
                 if prediction is None:
-                    prediction = 0.0
+                    prediction = 0.0  # Fallback for failed forecasts
             else:
                 continue
 
